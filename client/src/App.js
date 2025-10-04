@@ -57,30 +57,33 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
+              {/* Root redirect */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              
               {/* Protected routes */}
-              <Route path="/" element={
+              <Route path="/app" element={
                 <ProtectedRoute>
                   <Layout />
                 </ProtectedRoute>
               }>
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="expenses" element={<Expenses />} />
-                <Route path="expenses/submit" element={<SubmitExpense />} />
-                <Route path="expenses/:id" element={<SubmitExpense />} />
-                <Route path="approvals" element={<Approvals />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="settings" element={<Settings />} />
+                <Route index element={<Navigate to="/app/dashboard" replace />} />
+                <Route path="app/dashboard" element={<Dashboard />} />
+                <Route path="app/expenses" element={<Expenses />} />
+                <Route path="app/expenses/submit" element={<SubmitExpense />} />
+                <Route path="app/expenses/:id" element={<SubmitExpense />} />
+                <Route path="app/approvals" element={<Approvals />} />
+                <Route path="app/reports" element={<Reports />} />
+                <Route path="app/profile" element={<Profile />} />
+                <Route path="app/settings" element={<Settings />} />
                 
                 {/* Admin routes */}
-                <Route path="admin" element={<AdminDashboard />} />
-                <Route path="admin/companies" element={<CompanyManagement />} />
-                <Route path="admin/users" element={<UserManagement />} />
+                <Route path="app/admin" element={<AdminDashboard />} />
+                <Route path="app/admin/companies" element={<CompanyManagement />} />
+                <Route path="app/admin/users" element={<UserManagement />} />
               </Route>
               
               {/* Catch all route */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </div>
         </Router>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiBriefcase } from 'react-icons/fi';
-import { companyAPI } from '../services/api';
+import { authAPI } from '../services/api';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -21,36 +21,14 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [companies, setCompanies] = useState([]);
-  const [debugInfo, setDebugInfo] = useState('');
-
-  const { register, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    setDebugInfo(`Auth: ${isAuthenticated}, Loading: ${loading}`);
-    // Temporarily disable auto-redirect to debug the issue
-    // if (isAuthenticated && !loading) {
-    //   console.log('User is authenticated, redirecting to dashboard');
-    //   navigate('/dashboard', { replace: true });
-    // }
-  }, [isAuthenticated, navigate, loading]);
-
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await companyAPI.getCompanies();
-        setCompanies(response.data.companies);
-      } catch (error) {
-        console.error('Error fetching companies:', error);
-        // For now, let's create a default company option
-        setCompanies([{
-          _id: 'default',
-          name: 'Default Company (Contact Admin)'
-        }]);
-      }
-    };
-
-    fetchCompanies();
+    // Set default company for first user
+    setCompanies([{
+      _id: 'auto-create',
+      name: 'Auto-create Company (First User)'
+    }]);
   }, []);
 
   const handleChange = (e) => {
@@ -66,29 +44,55 @@ const Register = () => {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
     try {
       // For the first user (admin), we'll create a company automatically
+      const { confirmPassword, ...formDataWithoutConfirm } = formData;
       const registrationData = {
-        ...formData,
-        // If no company selected, we'll create one automatically
+        ...formDataWithoutConfirm,
         company: formData.company || 'auto-create'
       };
 
-      const result = await register(registrationData);
-      if (result.success) {
-        navigate('/dashboard', { replace: true });
+      console.log('Sending registration data:', registrationData);
+      const response = await authAPI.register(registrationData);
+      
+      if (response.data) {
+        // Store token and redirect
+        localStorage.setItem('token', response.data.tokens.accessToken);
+        toast.success('Registration successful!');
+        navigate('/app/dashboard', { replace: true });
       }
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      if (error.response?.data?.errors) {
+        // Show validation errors
+        const errorMessages = error.response.data.errors.map(err => err.message).join(', ');
+        toast.error(`Validation failed: ${errorMessages}`);
+      } else {
+        toast.error(error.response?.data?.message || 'Registration failed');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show loading state if form is submitting
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="loading-spinner h-8 w-8 mx-auto mb-4"></div>
+          <p>Creating your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -110,19 +114,10 @@ const Register = () => {
             </Link>
           </p>
           {/* Debug Info */}
-          <div className="mt-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-center">
-            Debug: {debugInfo}
-            <br />
-            <button 
-              onClick={() => {
-                localStorage.removeItem('token');
-                window.location.reload();
-              }}
-              className="mt-1 bg-red-600 text-white px-2 py-1 rounded text-xs"
-            >
-              Clear Auth & Reload
-            </button>
-          </div>
+        <div className="mt-4 p-2 bg-green-100 border border-green-300 rounded text-xs text-center">
+          <p className="text-green-800">✅ Registration page is working!</p>
+          <p className="text-green-700">Fill out the form below to create your account.</p>
+        </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

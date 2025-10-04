@@ -26,7 +26,7 @@ const userValidation = {
         'string.min': 'Password must be at least 6 characters',
         'string.max': 'Password cannot exceed 128 characters'
       }),
-    role: Joi.string().valid('admin', 'manager', 'employee', 'finance').required()
+    role: Joi.string().valid('admin', 'manager', 'employee', 'finance').optional()
       .messages({
         'any.only': 'Role must be one of: admin, manager, employee, finance'
       }),

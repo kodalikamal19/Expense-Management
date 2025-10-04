@@ -28,9 +28,23 @@ const generateTokens = (userId) => {
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public (for admin only in production)
-router.post('/register', validate(userValidation.register), async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
+    console.log('Registration request body:', req.body);
     const { email, password, firstName, lastName, role, company, manager, department, position, phoneNumber, address } = req.body;
+
+    // Basic validation
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        message: 'Missing required fields',
+        errors: [
+          { field: 'email', message: !email ? 'Email is required' : null },
+          { field: 'password', message: !password ? 'Password is required' : null },
+          { field: 'firstName', message: !firstName ? 'First name is required' : null },
+          { field: 'lastName', message: !lastName ? 'Last name is required' : null }
+        ].filter(err => err.message)
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -41,14 +55,19 @@ router.post('/register', validate(userValidation.register), async (req, res) => 
       });
     }
 
+    console.log('User does not exist, proceeding with registration...');
+
     let companyId = company;
 
     // Auto-create company if needed (for first admin user)
     if (company === 'auto-create' || !company) {
+      console.log('Auto-creating company...');
       // Check if this is the first user
       const userCount = await User.countDocuments();
+      console.log('Current user count:', userCount);
       
       if (userCount === 0) {
+        console.log('Creating default company...');
         // Create default company for first user
         const defaultCompany = new Company({
           name: `${firstName} ${lastName}'s Company`,
@@ -59,10 +78,11 @@ router.post('/register', validate(userValidation.register), async (req, res) => 
         
         await defaultCompany.save();
         companyId = defaultCompany._id;
+        console.log('Company created with ID:', companyId);
         
         // Update the company with the creator
-        defaultCompany.createdBy = null; // Will be updated after user creation
-        await defaultCompany.save();
+        // defaultCompany.createdBy = null; // Will be updated after user creation
+        // await defaultCompany.save();
       } else {
         return res.status(400).json({
           message: 'No company selected and not the first user',
@@ -142,9 +162,11 @@ router.post('/register', validate(userValidation.register), async (req, res) => 
     });
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       message: 'Registration failed',
-      error: error.message
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
