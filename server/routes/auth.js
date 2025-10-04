@@ -47,7 +47,16 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    let existingUser;
+    try {
+      existingUser = await User.findOne({ email }).maxTimeMS(5000); // 5 second timeout
+    } catch (error) {
+      console.error('Error checking existing user:', error);
+      // Continue with registration if we can't check - let MongoDB handle duplicate key error
+      console.log('Continuing with registration despite user check timeout...');
+      existingUser = null;
+    }
+    
     if (existingUser) {
       return res.status(400).json({
         message: 'User already exists with this email',
@@ -63,8 +72,15 @@ router.post('/register', async (req, res) => {
     if (company === 'auto-create' || !company) {
       console.log('Auto-creating company...');
       // Check if this is the first user
-      const userCount = await User.countDocuments();
-      console.log('Current user count:', userCount);
+      let userCount = 0;
+      try {
+        userCount = await User.countDocuments().maxTimeMS(5000); // 5 second timeout
+        console.log('Current user count:', userCount);
+      } catch (error) {
+        console.error('Error counting users:', error);
+        console.log('Assuming not first user due to timeout...');
+        userCount = 1; // Assume not first user if we can't count
+      }
       
       if (userCount === 0) {
         console.log('Creating default company...');
@@ -79,19 +95,77 @@ router.post('/register', async (req, res) => {
         await defaultCompany.save();
         companyId = defaultCompany._id;
         console.log('Company created with ID:', companyId);
-        
-        // Update the company with the creator
-        // defaultCompany.createdBy = null; // Will be updated after user creation
-        // await defaultCompany.save();
       } else {
         return res.status(400).json({
           message: 'No company selected and not the first user',
           code: 'COMPANY_REQUIRED'
         });
       }
+    } else if (typeof company === 'string' && company.length > 0) {
+      // If company is a string (company name), create a new company
+      console.log('Creating new company with name:', company);
+      let userCount = 0;
+      try {
+        userCount = await User.countDocuments().maxTimeMS(5000); // 5 second timeout
+      } catch (error) {
+        console.error('Error counting users:', error);
+        console.log('Assuming not first user due to timeout...');
+        userCount = 1; // Assume not first user if we can't count
+      }
+      
+      if (userCount === 0) {
+        // First user - create company with provided name
+        const newCompany = new Company({
+          name: company,
+          country: 'US', // Default country
+          currency: 'USD', // Default currency
+          createdBy: null // Will be updated after user creation
+        });
+        
+        await newCompany.save();
+        companyId = newCompany._id;
+        console.log('Company created with ID:', companyId);
+      } else {
+        // Check if company already exists by name
+        let existingCompany;
+        try {
+          existingCompany = await Company.findOne({ name: company }).maxTimeMS(5000);
+        } catch (error) {
+          console.error('Error checking existing company:', error);
+          existingCompany = null; // Assume no existing company if we can't check
+        }
+        
+        if (existingCompany) {
+          companyId = existingCompany._id;
+          console.log('Using existing company with ID:', companyId);
+        } else {
+          // For non-first users, still allow company creation if they provide a name
+          // This allows new companies to be created during registration
+          const newCompany = new Company({
+            name: company,
+            country: 'US', // Default country
+            currency: 'USD', // Default currency
+            createdBy: null // Will be updated after user creation
+          });
+          
+          await newCompany.save();
+          companyId = newCompany._id;
+          console.log('New company created with ID:', companyId);
+        }
+      }
     } else {
-      // Verify company exists
-      const companyExists = await Company.findById(company);
+      // Verify company exists (assuming it's an ObjectId)
+      let companyExists;
+      try {
+        companyExists = await Company.findById(company).maxTimeMS(5000);
+      } catch (error) {
+        console.error('Error checking company by ID:', error);
+        return res.status(500).json({
+          message: 'Database connection error. Please try again.',
+          code: 'DATABASE_ERROR'
+        });
+      }
+      
       if (!companyExists) {
         return res.status(400).json({
           message: 'Company not found',
@@ -129,7 +203,7 @@ router.post('/register', async (req, res) => {
     await user.save();
 
     // Update company's createdBy field if this is the first user
-    if (company === 'auto-create') {
+    if (company === 'auto-create' || (typeof company === 'string' && company.length > 0)) {
       await Company.findByIdAndUpdate(companyId, { createdBy: user._id });
     }
 

@@ -67,19 +67,19 @@ function App() {
                 </ProtectedRoute>
               }>
                 <Route index element={<Navigate to="/app/dashboard" replace />} />
-                <Route path="app/dashboard" element={<Dashboard />} />
-                <Route path="app/expenses" element={<Expenses />} />
-                <Route path="app/expenses/submit" element={<SubmitExpense />} />
-                <Route path="app/expenses/:id" element={<SubmitExpense />} />
-                <Route path="app/approvals" element={<Approvals />} />
-                <Route path="app/reports" element={<Reports />} />
-                <Route path="app/profile" element={<Profile />} />
-                <Route path="app/settings" element={<Settings />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="expenses" element={<Expenses />} />
+                <Route path="expenses/submit" element={<SubmitExpense />} />
+                <Route path="expenses/:id" element={<SubmitExpense />} />
+                <Route path="approvals" element={<Approvals />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
                 
                 {/* Admin routes */}
-                <Route path="app/admin" element={<AdminDashboard />} />
-                <Route path="app/admin/companies" element={<CompanyManagement />} />
-                <Route path="app/admin/users" element={<UserManagement />} />
+                <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin/companies" element={<CompanyManagement />} />
+                <Route path="admin/users" element={<UserManagement />} />
               </Route>
               
               {/* Catch all route */}

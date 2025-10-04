@@ -278,37 +278,26 @@ const Register = () => {
             {/* Company */}
             <div>
               <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                Company
+                Company Name
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiBriefcase className="h-5 w-5 text-gray-400" />
                 </div>
-                <select
+                <input
                   id="company"
                   name="company"
+                  type="text"
                   required
                   value={formData.company}
                   onChange={handleChange}
                   className="input pl-10"
-                >
-                  <option value="">Select a company</option>
-                  {companies.length > 0 ? (
-                    companies.map((company) => (
-                      <option key={company._id} value={company._id}>
-                        {company.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>No companies available. Please contact admin.</option>
-                  )}
-                </select>
+                  placeholder="Enter your company name"
+                />
               </div>
-              {companies.length === 0 && (
-                <p className="mt-1 text-sm text-red-600">
-                  No companies found. Please contact your administrator to create a company first.
-                </p>
-              )}
+              <p className="mt-1 text-sm text-gray-500">
+                Enter your company name. If you're the first user, a new company will be created automatically.
+              </p>
             </div>
 
             {/* Department and Position */}

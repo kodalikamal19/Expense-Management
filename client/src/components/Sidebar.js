@@ -20,49 +20,49 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigation = [
     {
       name: 'Dashboard',
-      href: '/dashboard',
+      href: '/app/dashboard',
       icon: FiHome,
       roles: ['admin', 'manager', 'employee', 'finance']
     },
     {
       name: 'My Expenses',
-      href: '/expenses',
+      href: '/app/expenses',
       icon: FiDollarSign,
       roles: ['admin', 'manager', 'employee', 'finance']
     },
     {
       name: 'Submit Expense',
-      href: '/expenses/submit',
+      href: '/app/expenses/submit',
       icon: FiPlus,
       roles: ['admin', 'manager', 'employee']
     },
     {
       name: 'Approvals',
-      href: '/approvals',
+      href: '/app/approvals',
       icon: FiCheckCircle,
       roles: ['admin', 'manager', 'finance']
     },
     {
       name: 'Reports',
-      href: '/reports',
+      href: '/app/reports',
       icon: FiBarChart,
       roles: ['admin', 'manager', 'finance']
     },
     {
       name: 'Users',
-      href: '/admin/users',
+      href: '/app/admin/users',
       icon: FiUsers,
       roles: ['admin', 'manager']
     },
     {
       name: 'Companies',
-      href: '/admin/companies',
+      href: '/app/admin/companies',
       icon: FiBriefcase,
       roles: ['admin']
     },
     {
       name: 'Settings',
-      href: '/settings',
+      href: '/app/settings',
       icon: FiSettings,
       roles: ['admin', 'manager', 'employee', 'finance']
     }
